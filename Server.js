@@ -20,6 +20,7 @@ const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:4000',
     'https://e-com-site-omega.vercel.app',
+    'https://ecombackend-0ku8.onrender.com'
 ];
 
 app.use(cors({
