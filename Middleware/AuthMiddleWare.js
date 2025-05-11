@@ -8,8 +8,8 @@ exports.auth = async (req, res, next) => {
         console.log("req.body : " + JSON.stringify(req.body));
         console.log("req.cookies : " + JSON.stringify(req.cookies));
         console.log("req.header : " + JSON.stringify(req.headers));
-        const token = req.body.token
-            || req.cookies['token']
+        const token = req?.body?.token
+            || req?.cookies['token']
             || (req.header("Authorization") ? req.header("Authorization").replace("Bearer ", "") : null);
 
         console.log("token inside auth middleware : " + token);
