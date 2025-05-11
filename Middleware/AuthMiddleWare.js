@@ -5,7 +5,7 @@ dotenv.config();
 exports.auth = async (req, res, next) => {
     try {
         console.log("INSIDE AUTH MIDDLEWARE");
-        console.log("req in auth middleware : " + req);
+        console.log("req in auth middleware : " + JSON.stringify(req); );
         const token = req.body.token
             || req.cookies['token']
             || (req.header("Authorization") ? req.header("Authorization").replace("Bearer ", "") : null);
