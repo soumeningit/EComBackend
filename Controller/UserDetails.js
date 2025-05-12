@@ -1,3 +1,5 @@
+const { contactus } = require('../Utils/CreateTable');
+const dbConnect = require('../Utils/DBConnect');
 const Connection = require('../Utils/DBConnect');
 
 
@@ -313,3 +315,78 @@ exports.deleteUser = async (req, res) => {
         });
     }
 };
+
+exports.submitContactData = async (req, res) => {
+    try {
+        console.log("INSIDE SUBMIT CONTACT DATA ....");
+        const pool = await dbConnect();
+        const connection = await pool.getConnection();
+        console.log("Request Body : " + JSON.stringify(req.body));
+        const { name, email, message, userId } = req.body;
+        if (!name || !email || !message || !userId || message.length <= 1) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide all details"
+            });
+        }
+        const checkMsgIsOnlySpaces = message.trim().length === 0;
+        if (checkMsgIsOnlySpaces) {
+            return res.status(400).json({
+                success: false,
+                message: "Message should not be empty"
+            });
+        }
+
+        const isContactUsTableExists = await contactus(connection);
+        if (!isContactUsTableExists) {
+            return res.status(400).json({
+                success: false,
+                message: "Contact us table not found"
+            });
+        }
+
+        const [user] = await connection.execute(
+            `SELECT * FROM users WHERE id = ?`,
+            [userId]
+        );
+
+        if (!user.length) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const [rows] = await connection.execute(
+            `INSERT INTO contactus (name, email, message, user_id, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    name = VALUES(name),
+                    email = VALUES(email),
+                    message = VALUES(message),
+                    created_at = VALUES(created_at)`,
+            [name, email, message, userId, new Date()]
+        );
+
+        if (rows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Contact us submission failed"
+            });
+        }
+
+        console.log("Contact us submission : " + JSON.stringify(rows));
+
+        return res.status(200).json({
+            success: true,
+            message: "Contact us submission successful"
+        });
+
+    } catch (error) {
+        console.log("Error in submitContactData : " + error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}

@@ -9,7 +9,8 @@ const {
     getUserDetails,
     updateUser,
     deleteUser,
-    getProductsDetailsByUser
+    getProductsDetailsByUser,
+    submitContactData
 } = require('../Controller/UserDetails');
 const { auth, isVendor } = require('../Middleware/AuthMiddleWare');
 
@@ -21,5 +22,6 @@ router.post('/createUser', createUser);
 router.post('/getUserDetails', getUserDetails);
 router.put("/updateUserDetails", updateUser);
 router.delete('/deleteUser', deleteUser);
+router.post('/submit-contact-us-data', auth, submitContactData);
 
 module.exports = router;

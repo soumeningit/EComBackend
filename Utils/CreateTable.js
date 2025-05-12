@@ -438,7 +438,8 @@ exports.contactus = async (connection) => {
                                 email VARCHAR(50) NOT NULL,
                                 user_id INT,
                                 message TEXT NOT NULL,
-                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                created_at DATETIME,
+                                UNIQUE(user_id),
                                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
                             );`;
             await connection.execute(query);

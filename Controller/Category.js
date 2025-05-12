@@ -1,5 +1,6 @@
 const { connect } = require('../Routes/CategoryRoute');
 const { createCategories } = require('../Utils/CreateTable');
+const dbConnect = require('../Utils/DBConnect');
 const Connection = require('../Utils/DBConnect');
 
 exports.createCategory = async (req, res) => {
@@ -187,6 +188,73 @@ exports.findItemsByCategory = async (req, res) => {
 
         console.log("Items : ", items);
 
+        return res.status(200).json({
+            success: true,
+            data: items
+        });
+    } catch (error) {
+        console.log("Error in findItemsByCategory", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}
+
+exports.getProductByCategoryName = async (req, res) => {
+    try {
+        console.log("INSIDE GET PRODUCT BY CATEGORY NAME ....");
+        const pool = await dbConnect();
+        const connection = await pool.getConnection();
+
+        const { categoryName } = req.query;
+        console.log("req.query : ", req.query);
+        console.log("Category Name : ", categoryName);
+
+        if (!categoryName) {
+            return res.status(400).json({
+                success: false,
+                message: "Category name is required"
+            });
+        }
+
+        const query = `
+                        WITH my_cte AS (
+                            SELECT id
+                            FROM categories
+                            WHERE category_name LIKE ?
+                        )
+                        SELECT 
+                            p.id AS product_id,
+                            p.product_name,
+                            p.product_mrp,
+                            p.created_by,
+                            p.category_id,
+                            p.image AS product_image,
+                            pd.id AS product_description_id,
+                            pd.short_desc,
+                            pd.medium_desc,
+                            pd.long_desc,
+                            c.category_name,
+                            categori_desc
+                        FROM product_details AS p
+                        JOIN product_description AS pd 
+                            ON p.id = pd.product_id
+                        JOIN categories AS c 
+                            ON c.id = p.category_id
+                        WHERE category_id IN (
+                            SELECT id
+                            FROM my_cte
+                        );`;
+
+        const [items] = await connection.execute(query, [categoryName]);
+        if (!items.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No items found for this category"
+            });
+        }
+        console.log("Items : ", items);
         return res.status(200).json({
             success: true,
             data: items
