@@ -1,65 +1,6 @@
 const Connection = require("../Utils/DBConnect");
 
 
-exports.getPendingUsers = async (req, res) => {
-
-    let connection;
-    try {
-        console.log("INSIDE VERIFY USER ....");
-
-        const pool = await Connection();
-        connection = await pool.getConnection();
-
-        const query = `
-                    SELECT
-                        u.id AS user_id,
-                        u.firstName,
-                        u.middleName,
-                        u.lastName,
-                        u.email,
-                        u.mobileNo,
-                        u.role,
-                        u.image,
-                        u.is_verified,
-                        u.is_authorised,
-                        u.created_at,
-                        a.address,
-                        a.city,
-                        a.state,
-                        a.pin_code,
-                        a.country,
-                        a.dob,
-                        ppd.status AS user_status,
-                        ppd.public_id_type,
-                        ppd.public_id,
-                        ppd.unique_id,
-                        ppd.public_id_image
-                    FROM users AS u
-                    JOIN additional_details AS a ON u.id = a.user_id
-                    JOIN product_provider_details AS ppd ON u.id = ppd.user_id
-                    WHERE u.role != ? AND u.is_verified = ? AND u.is_authorised = ? AND ppd.status = ?;`;
-        const [users] = await connection.execute(query, ["admin", true, false, "applied"]);
-
-        if (users.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No users found"
-            });
-        }
-        console.log("users : " + JSON.stringify(users));
-        return res.status(200).json({
-            success: true,
-            message: "Vendors found",
-            data: users
-        });
-    } catch (error) {
-        console.log(`Error in getVendors ${error}`);
-        return res.status(501).json({
-            success: false,
-            message: "Internal server error"
-        })
-    }
-};
 
 exports.verifyUser = async (req, res) => {
     let connection;
